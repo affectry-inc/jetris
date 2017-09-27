@@ -12,52 +12,7 @@ import { Button } from 'react-native-elements'
 import Dimensions from 'Dimensions'
 import ReactMixin from 'react-mixin'
 import TimerMixin from 'react-timer-mixin'
-
-const defaultMinos = [
-  [[], []], // 0
-  [[4,5,6,7], [4,4,4,4]], // 1
-  [[4,5,5,6], [4,4,3,3]], // 2
-  [[4,5,5,6], [3,3,4,4]], // 3
-  [[4,5,6,6], [3,3,3,4]], // 4
-  [[4,5,6,6], [4,4,4,3]], // 5
-  [[4,4,5,5], [3,4,4,3]], // 6
-  [[4,5,5,6], [4,4,3,4]]  // 7
-]
-
-const defaultNextMinos = [
-  [[], []], // 0
-  [[0,1,2,3], [1,1,1,1]], // 1
-  [[0,1,1,2], [1,1,0,0]], // 2
-  [[0,1,1,2], [0,0,1,1]], // 3
-  [[0,1,2,2], [0,0,0,1]], // 4
-  [[0,1,2,2], [1,1,1,0]], // 5
-  [[1,1,2,2], [0,1,1,0]], // 6
-  [[0,1,1,2], [1,1,0,1]]  // 7
-]
-
-const minoColors = {
-  0: 'white',
-  1: 'cyan',
-  2: 'lime',
-  3: 'magenta',
-  4: 'blue',
-  5: 'orange',
-  6: 'yellow',
-  7: 'purple',
-}
-
-const defaultVals =[
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-]
+import { MinoColors, DefaultVals, DefaultMinos, DefaultNextMinos } from '../Consts'
 
 export default class PlayField extends Component {
   constructor(props) {
@@ -65,15 +20,7 @@ export default class PlayField extends Component {
 
     const firstMinoType = Math.floor(Math.random() * 7) + 1
 
-    this.state = {
-      lines: 0,
-      score: 0,
-      level: 1,
-      vals: defaultVals,
-      nextMinoType: Math.floor(Math.random() * 7) + 1,
-      minoType: firstMinoType,
-      minos: defaultMinos[firstMinoType]
-    }
+    this.state = this._initState()
   }
 
   componentDidMount = () => {
@@ -83,6 +30,20 @@ export default class PlayField extends Component {
   componentWillUnmount = () => {
     this.clearInterval(this.timer)
     console.log('Timer stops')
+  }
+
+  _initState = () => {
+    const firstMinoType = Math.floor(Math.random() * 7) + 1
+
+    return {
+      lines: 0,
+      score: 0,
+      level: 1,
+      vals: DefaultVals,
+      nextMinoType: Math.floor(Math.random() * 7) + 1,
+      minoType: firstMinoType,
+      minos: DefaultMinos[firstMinoType]
+    }
   }
 
   _beginFall = () => {
@@ -221,7 +182,7 @@ export default class PlayField extends Component {
       vals: newVals,
       nextMinoType: nextNextMinoType,
       minoType: nextMinoType,
-      minos: defaultMinos[nextMinoType]
+      minos: DefaultMinos[nextMinoType]
     })
 
     if (deadBlocks === 0) {
@@ -232,16 +193,7 @@ export default class PlayField extends Component {
         '',
         [
           {text: 'Replay', onPress: () => {
-            const firstMinoType = Math.floor(Math.random() * 7) + 1
-            this.setState({
-              lines: 0,
-              score: 0,
-              level: 1,
-              vals: defaultVals,
-              nextMinoType: Math.floor(Math.random() * 7) + 1,
-              minoType: firstMinoType,
-              minos: defaultMinos[firstMinoType]
-            })
+            this.setState(this._initState())
             this._beginFall()
           }},
           {text: 'Finish', onPress: () => {
@@ -378,7 +330,7 @@ class PlayCells extends PureComponent {
     this.props.vals.forEach((cv,ci,ca) => {
       let cells = []
       for (let ri = 5; ri < cv.length; ri++) {
-        const color = minoColors[cv[ri]]
+        const color = MinoColors[cv[ri]]
         const cellStyle = StyleSheet.flatten([styles.cell, { backgroundColor: color }])
         cells.push(<View key={ ci + '-' + ri } style={ cellStyle } />)
       }
@@ -401,7 +353,7 @@ class Tetromino extends PureComponent {
   render() {
     const xs = this.props.minos[0]
     const ys = this.props.minos[1]
-    const colorStyle = { backgroundColor: minoColors[this.props.minoType] }
+    const colorStyle = { backgroundColor: MinoColors[this.props.minoType] }
 
     const mino1Styles = ys[0] < 5 ?
       [{ display: 'none' }] : [styles.mino, colorStyle, { left: xs[0]*20, top: (ys[0]-5)*20 }]
@@ -425,8 +377,8 @@ class Tetromino extends PureComponent {
 
 class NextTetromino extends PureComponent {
   render() {
-    const colorStyle = { backgroundColor: minoColors[this.props.minoType] }
-    const minos = defaultNextMinos[this.props.minoType]
+    const colorStyle = { backgroundColor: MinoColors[this.props.minoType] }
+    const minos = DefaultNextMinos[this.props.minoType]
     const xs = minos[0]
     const ys = minos[1]
 

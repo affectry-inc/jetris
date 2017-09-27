@@ -12,7 +12,7 @@ import {
   StyleSheet,
   TabBarIOS,
 } from 'react-native'
-import PlayTab from './components/PlayTab'
+import PlayTab from './src/components/PlayTab'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 
 export default class jetris extends Component {
