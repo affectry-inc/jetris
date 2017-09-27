@@ -42,8 +42,8 @@ class Settings extends Component {
 
   render() {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', marginTop: 65, marginBottom: 50, padding: 20 }}>
-        <Text>Your name</Text>
+      <View style={{ flex: 1, marginTop: 65, marginBottom: 50, padding: 20 }}>
+        <Text style={{ marginTop: 30 }}>Your name</Text>
         <TextInput
           style={{ height: 40, borderColor: 'silver', borderBottomWidth: 0.5, paddingLeft: 5 }}
           onChangeText={(text) => this._setName(text)}

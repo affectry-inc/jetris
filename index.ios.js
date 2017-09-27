@@ -13,7 +13,7 @@ import {
   TabBarIOS,
 } from 'react-native'
 import Icon from 'react-native-vector-icons/MaterialIcons'
-import SingleScores from './src/components/SingleScores'
+import SinglesTab from './src/components/SinglesTab'
 import SettingsTab from './src/components/SettingsTab'
 
 export default class jetris extends Component {
@@ -38,7 +38,7 @@ export default class jetris extends Component {
             })
           }}
         >
-          <SingleScores />
+          <SinglesTab />
         </Icon.TabBarItem>
         <Icon.TabBarItem
           title='Battle'
@@ -51,7 +51,7 @@ export default class jetris extends Component {
             })
           }}
         >
-          <SingleScores />
+          <SinglesTab />
         </Icon.TabBarItem>
         <Icon.TabBarItem
           title='Settings'
