@@ -28,7 +28,7 @@ export default class jetris extends Component {
     return (
       <TabBarIOS>
         <Icon.TabBarItem
-          title='Single play'
+          title='Single Play'
           iconName='drag-handle'
           selectedIconName='drag-handle'
           selected={this.state.selectedTab === 'single'}

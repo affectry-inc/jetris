@@ -76,7 +76,7 @@ class SinglesScoreList extends Component {
 
   _onStart = () => {
     this.props.navigator.push({
-      title: 'Battle',
+      title: 'Single Play',
       component: PlayField,
     })
   }

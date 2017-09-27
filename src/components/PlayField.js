@@ -61,7 +61,7 @@ export default class PlayField extends Component {
       if (!this._moveMinos(0, 1)) {
         this._onTouchDown()
       }
-    }, (1000 - 5 * lvl * lvl))
+    }, (1000 - 150 * Math.sqrt(lvl)))
   }
 
   _fastFall = () => {
