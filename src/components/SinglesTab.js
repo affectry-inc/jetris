@@ -95,9 +95,9 @@ class SinglesScoreList extends Component {
         <List containerStyle={{ marginTop: 0, borderTopWidth: 0, borderBottomWidth: 0 }}>
           <FlatList
             data={ this.state.data }
-            renderItem={({ item }) => (
+            renderItem={({ item, index }) => (
               <ListItem
-                title={ item.name }
+                title={ `#${ index + 1 } ${ item.name }` }
                 subtitle={ item.playedAt }
                 rightTitle={ item.score.toString() }
                 rightTitleStyle={{ fontSize: 20, color: 'gray' }}
