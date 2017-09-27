@@ -10,7 +10,7 @@ import {
 } from 'react-native'
 import { Button } from 'react-native-elements'
 import Dimensions from 'Dimensions'
-import ReactMixin from 'react-mixin';
+import ReactMixin from 'react-mixin'
 import TimerMixin from 'react-timer-mixin'
 
 const defaultMinos = [
