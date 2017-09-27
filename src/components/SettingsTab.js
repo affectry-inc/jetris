@@ -26,7 +26,6 @@ class Settings extends Component {
       this.setState({
         name: res && res.name ? res.name : 'No name'
       })
-      Store.delete('settings')
     })
   }
 

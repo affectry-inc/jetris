@@ -7,12 +7,15 @@ import {
   View,
   ActivityIndicator,
   Alert,
+  AlertIOS,
 } from 'react-native'
 import { Button } from 'react-native-elements'
 import Dimensions from 'Dimensions'
 import ReactMixin from 'react-mixin'
 import TimerMixin from 'react-timer-mixin'
+import Store from 'react-native-simple-store'
 import { MinoColors, DefaultVals, DefaultMinos, DefaultNextMinos } from '../Consts'
+import { firebaseDb } from '../utils/firebase'
 
 export default class PlayField extends Component {
   constructor(props) {
@@ -42,7 +45,7 @@ export default class PlayField extends Component {
       vals: DefaultVals,
       nextMinoType: Math.floor(Math.random() * 7) + 1,
       minoType: firstMinoType,
-      minos: DefaultMinos[firstMinoType]
+      minos: DefaultMinos[firstMinoType],
     }
   }
 
@@ -188,20 +191,29 @@ export default class PlayField extends Component {
     if (deadBlocks === 0) {
       this._beginFall()
     } else {
-      Alert.alert(
-        'GAME OVER',
-        '',
-        [
-          {text: 'Replay', onPress: () => {
-            this.setState(this._initState())
-            this._beginFall()
-          }},
-          {text: 'Finish', onPress: () => {
-            this.props.navigator.pop()
-          }},
-        ],
-        { cancelable: false }
-      )
+      if (this.state.score === 0) {
+        this._alertRetry('GAME OVER')
+      } else {
+        Store.get('settings')
+        .then(res => {
+          const defName = res && res.name ? res.name : 'No name'
+
+          AlertIOS.prompt(
+            'GAME OVER',
+            `Your score was ${ this.state.score}!!\nPlace your name on the ranking!!`,
+            [
+              {
+                text: 'Send',
+                onPress: name => {
+                  this._sendName(name)
+                }
+              },
+            ],
+            'plain-text',
+            defName
+          )
+        })
+      }
     }
   }
 
@@ -258,6 +270,46 @@ export default class PlayField extends Component {
     if (canMove) this.setState({ minos: newMinos })
 
     return canMove
+  }
+
+  _alertRetry = (title) => {
+    Alert.alert(
+      title,
+      '',
+      [
+        {text: 'Retry', onPress: () => {
+          this.setState(this._initState())
+          this._beginFall()
+        }},
+        {text: 'Finish', onPress: () => {
+          this.props.navigator.pop()
+        }},
+      ],
+      { cancelable: false }
+    )
+  }
+
+  _sendName = (name) => {
+    Store.update('settings', {
+      name: name
+    })
+
+    const now = new Date()
+    let time = now.getFullYear() + '/'
+    time += ('0' + (now.getMonth() + 1)).slice(-2) + '/'
+    time += ('0' + now.getDate()).slice(-2) + ' '
+    time += ('0' + now.getHours()).slice(-2) + ':'
+    time += ('0' + now.getMinutes()).slice(-2) + ':'
+    time += ('0' + now.getSeconds()).slice(-2)
+
+    const newRef = firebaseDb.ref('singles').push()
+    newRef.set({
+      'name': name,
+      'score': this.state.score,
+      'playedAt': time,
+    })
+
+    this._alertRetry('Try again?')
   }
 
   render() {
