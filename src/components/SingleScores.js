@@ -9,7 +9,7 @@ import {
 } from 'react-native'
 import PlayField from './PlayField'
 
-class SingleScores extends Component {
+class ReadyView extends Component {
   _onStart = () => {
     this.props.navigator.push({
       title: 'Battle',
@@ -30,7 +30,7 @@ class SingleScores extends Component {
   }
 }
 
-export default class PlayTab extends Component {
+export default class SingleScores extends Component {
   constructor(props) {
     super(props)
     this.state = {

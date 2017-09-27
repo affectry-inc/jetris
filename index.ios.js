@@ -12,8 +12,9 @@ import {
   StyleSheet,
   TabBarIOS,
 } from 'react-native'
-import PlayTab from './src/components/PlayTab'
 import Icon from 'react-native-vector-icons/MaterialIcons'
+import SingleScores from './src/components/SingleScores'
+import SettingsTab from './src/components/SettingsTab'
 
 export default class jetris extends Component {
   constructor(props) {
@@ -32,12 +33,12 @@ export default class jetris extends Component {
           selectedIconName='drag-handle'
           selected={this.state.selectedTab === 'single'}
           onPress={() => {
-            this.setState(
-              {selectedTab: 'single'}
-            )
+            this.setState({
+              selectedTab: 'single'
+            })
           }}
         >
-          <PlayTab />
+          <SingleScores />
         </Icon.TabBarItem>
         <Icon.TabBarItem
           title='Battle'
@@ -45,12 +46,12 @@ export default class jetris extends Component {
           selectedIconName='format-align-center'
           selected={this.state.selectedTab === 'battle'}
           onPress={() => {
-            this.setState(
-              {selectedTab: 'battle'}
-            )
+            this.setState({
+              selectedTab: 'battle'
+            })
           }}
         >
-          <PlayTab />
+          <SingleScores />
         </Icon.TabBarItem>
         <Icon.TabBarItem
           title='Settings'
@@ -58,12 +59,12 @@ export default class jetris extends Component {
           selectedIconName='face'
           selected={this.state.selectedTab === 'settings'}
           onPress={() => {
-            this.setState(
-              {selectedTab: 'settings'}
-            )
+            this.setState({
+              selectedTab: 'settings'
+            })
           }}
         >
-          <PlayTab />
+          <SettingsTab />
         </Icon.TabBarItem>
       </TabBarIOS>
     )
