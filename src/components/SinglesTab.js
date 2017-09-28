@@ -6,6 +6,7 @@ import {
   StyleSheet,
   NavigatorIOS,
   FlatList,
+  ActivityIndicator,
 } from 'react-native'
 import PlayField from './PlayField'
 import { List, ListItem, SearchBar, Icon } from 'react-native-elements'
@@ -94,6 +95,22 @@ class SinglesScoreList extends Component {
     )
   }
 
+  _renderFooter = () => {
+    if (!this.state.loading) return null
+
+    return (
+      <View
+        style={{
+          paddingVertical: 20,
+          borderTopWidth: 1,
+          borderColor: "#CED0CE"
+        }}
+      >
+        <ActivityIndicator />
+      </View>
+    )
+  }
+
   _onStart = () => {
     this.props.navigator.push({
       title: 'Single Play',
@@ -118,6 +135,7 @@ class SinglesScoreList extends Component {
             renderItem={ this._renderItem }
             keyExtractor={ item => item.key }
             ItemSeparatorComponent={ this._renderSeparator }
+            ListFooterComponent={ this._renderFooter }
             onRefresh={ this._onRefresh }
             refreshing={ this.state.refreshing }
           />
