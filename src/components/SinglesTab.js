@@ -74,6 +74,24 @@ class SinglesScoreList extends Component {
     )
   }
 
+  _renderItem = ({ item, index }) => {
+    let playTime = ''
+    if (item.playTimeHour > 0) playTime += item.playTimeHour + 'h '
+    playTime += item.playTimeMin + 'm '
+    playTime += item.playTimeSec + 's'
+
+    return (
+      <ListItem
+        title={ `#${ index + 1 } ${ item.name }` }
+        subtitle={ `${ playTime }` }
+        rightTitle={ item.score.toString() }
+        rightTitleStyle={{ fontSize: 20, color: 'gray' }}
+        rightIcon={{ style: { display: 'none' } }}
+        containerStyle={{ borderBottomWidth: 0 }}
+      />
+    )
+  }
+
   _onStart = () => {
     this.props.navigator.push({
       title: 'Single Play',
@@ -95,16 +113,7 @@ class SinglesScoreList extends Component {
         <List containerStyle={{ marginTop: 0, borderTopWidth: 0, borderBottomWidth: 0 }}>
           <FlatList
             data={ this.state.data }
-            renderItem={({ item, index }) => (
-              <ListItem
-                title={ `#${ index + 1 } ${ item.name }` }
-                subtitle={ item.playedAt }
-                rightTitle={ item.score.toString() }
-                rightTitleStyle={{ fontSize: 20, color: 'gray' }}
-                rightIcon={{ style: { display: 'none' } }}
-                containerStyle={{ borderBottomWidth: 0 }}
-              />
-            )}
+            renderItem={ this._renderItem }
             keyExtractor={ item => item.key }
             ItemSeparatorComponent={ this._renderSeparator }
             onRefresh={ this._onRefresh }

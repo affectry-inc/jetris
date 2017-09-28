@@ -46,6 +46,7 @@ export default class PlayField extends Component {
       nextMinoType: Math.floor(Math.random() * 7) + 1,
       minoType: firstMinoType,
       minos: DefaultMinos[firstMinoType],
+      startedAt: new Date(),
     }
   }
 
@@ -205,7 +206,7 @@ export default class PlayField extends Component {
               {
                 text: 'Send',
                 onPress: name => {
-                  this._sendName(name)
+                  this._saveScore(name)
                 }
               },
             ],
@@ -289,7 +290,7 @@ export default class PlayField extends Component {
     )
   }
 
-  _sendName = (name) => {
+  _saveScore = (name) => {
     Store.update('settings', {
       name: name
     })
@@ -302,11 +303,21 @@ export default class PlayField extends Component {
     time += ('0' + now.getMinutes()).slice(-2) + ':'
     time += ('0' + now.getSeconds()).slice(-2)
 
+    const playTime = parseInt((now.getTime() - this.state.startedAt.getTime()) / 1000)
+    const hour = parseInt(playTime / 3600)
+    const min = parseInt((playTime / 60) % 60)
+    const sec = playTime % 60;
+
     const newRef = firebaseDb.ref('singles').push()
     newRef.set({
       'name': name,
       'score': this.state.score,
+      'lines': this.state.lines,
+      'level': this.state.level,
       'playedAt': time,
+      'playTimeHour': hour,
+      'playTimeMin': min,
+      'playTimeSec': sec,
     })
 
     this._alertRetry('Try again?')
