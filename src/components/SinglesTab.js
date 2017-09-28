@@ -30,24 +30,26 @@ class SinglesScoreList extends Component {
   _loadScores = () => {
     this.setState({ loading: true })
 
-    const ref = firebaseDb.ref('singles')
-    ref.orderByChild('score').limitToFirst(50).once('value')
-    .then(snapshot => {
-      let scores = []
-      snapshot.forEach(childSnapshot => {
-        const val = childSnapshot.val()
-        scores.unshift({
-          key: childSnapshot.key,
-          ...val
-        })
+    const ref = firebaseDb.ref('singles').orderByChild('score').limitToFirst(50)
+    ref.off()
+    ref.on('value',
+      snapshot => {
+        let scores = []
+        snapshot.forEach(childSnapshot => {
+          const val = childSnapshot.val()
+          scores.unshift({
+            key: childSnapshot.key,
+            ...val
+          })
 
-        this.setState({
-          data: scores,
-          loading: false,
-          refreshing: false
+          this.setState({
+            data: scores,
+            loading: false,
+            refreshing: false
+          })
         })
-      })
-    })
+      }
+    )
   }
 
   _onRefresh = () => {
