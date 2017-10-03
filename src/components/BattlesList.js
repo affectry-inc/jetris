@@ -6,43 +6,46 @@ import {
   StyleSheet,
   FlatList,
   ActivityIndicator,
+  AlertIOS,
 } from 'react-native'
 import { List, ListItem } from 'react-native-elements'
+import Store from 'react-native-simple-store'
+import { BattleStatus } from '../Consts'
 import { firebaseDb } from '../utils/firebase'
 
-export default class SinglesScoreList extends Component {
+export default class BattlesList extends Component {
 
   constructor(props) {
     super(props)
 
     this.state = {
-      loading: false,
       data: [],
+      loading: false,
       refreshing: false
     }
   }
 
   componentDidMount() {
-    this._loadScores()
+    this._loadBattles()
   }
 
-  _loadScores = () => {
+  _loadBattles = () => {
     this.setState({ loading: true })
 
-    const ref = firebaseDb.ref('singles').orderByChild('score').limitToFirst(50)
+    const ref = firebaseDb.ref('waitings').orderByChild('status').limitToFirst(50)
     ref.off()
     ref.on('value',
       snapshot => {
-        let scores = []
+        let list = []
         snapshot.forEach(childSnapshot => {
           const val = childSnapshot.val()
-          scores.unshift({
+          list.push({
             key: childSnapshot.key,
             ...val
           })
 
           this.setState({
-            data: scores,
+            data: list,
             loading: false,
             refreshing: false
           })
@@ -58,15 +61,37 @@ export default class SinglesScoreList extends Component {
     )
   }
 
+  _askName = (key) => {
+    Store.get('settings')
+    .then(res => {
+      const defName = res && res.name ? res.name : 'No name'
+      AlertIOS.prompt(
+        'Challenge',
+        'Send a challenge with this name?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Send', onPress: name => { this.props.challenge(key, name) }
+          },
+        ],
+        'plain-text',
+        defName
+      )
+    })
+  }
+
   _onRefresh = () => {
     this.setState(
       {
         refreshing: true
       },
       () => {
-        this._loadScores()
+        this._loadBattles()
       }
     )
+  }
+
+  _onSelectCell = (key) => {
+    this._askName(key)
   }
 
   _renderSeparator = () => {
@@ -83,19 +108,32 @@ export default class SinglesScoreList extends Component {
   }
 
   _renderItem = ({ item, index }) => {
-    let playTime = ''
-    if (item.playTimeHour > 0) playTime += item.playTimeHour + 'h '
-    playTime += item.playTimeMin + 'm '
-    playTime += item.playTimeSec + 's'
+    let status, statusColor
+    switch (item.status) {
+      case BattleStatus[0]:
+        status = 'Waiting'
+        statusColor = 'deepskyblue'
+        break
+      case BattleStatus[5]:
+        status = 'In Battle'
+        statusColor = 'orangered'
+        break
+      case BattleStatus[9]:
+        status = 'Finished'
+        statusColor = 'lightgray'
+        break
+      default:
+        break
+    }
 
     return (
       <ListItem
-        title={ `#${ index + 1 } ${ item.name }` }
-        subtitle={ `${ playTime }` }
-        rightTitle={ item.score.toString() }
-        rightTitleStyle={{ fontSize: 20, color: 'gray' }}
-        rightIcon={{ style: { display: 'none' } }}
+        title={ `${ item.player1.name }` }
+        subtitle={ `${ item.sentAtStr }` }
+        rightTitle={ status }
+        rightTitleStyle={{ fontSize: 20, color: statusColor }}
         containerStyle={{ borderBottomWidth: 0 }}
+        onPress={ () => { this._onSelectCell(item.key) }}
       />
     )
   }

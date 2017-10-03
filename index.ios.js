@@ -14,6 +14,7 @@ import {
 } from 'react-native'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import SinglesTab from './src/components/SinglesTab'
+import BattlesTab from './src/components/BattlesTab'
 import SettingsTab from './src/components/SettingsTab'
 
 export default class jetris extends Component {
@@ -51,10 +52,10 @@ export default class jetris extends Component {
             })
           }}
         >
-          <SinglesTab />
+          <BattlesTab />
         </Icon.TabBarItem>
         <Icon.TabBarItem
-          title='Settings'
+          title='Profile'
           iconName='face'
           selectedIconName='face'
           selected={this.state.selectedTab === 'settings'}

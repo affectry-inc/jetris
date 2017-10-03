@@ -65,7 +65,7 @@ export default class SettingsTab extends Component {
       <NavigatorIOS
         style={{ flex: 1 }}
         initialRoute={{
-          title: 'Settings',
+          title: 'Profile',
           component: Settings,
         }}
       />

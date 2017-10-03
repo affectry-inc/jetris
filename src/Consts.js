@@ -43,3 +43,9 @@ export const DefaultNextMinos = [
   [[1,1,2,2], [0,1,1,0]], // 6
   [[0,1,1,2], [1,1,0,1]]  // 7
 ]
+
+export const BattleStatus = {
+  0: '0_ready',
+  5: '5_inBattle',
+  9: '9_finished',
+}
