@@ -14,7 +14,9 @@ import Dimensions from 'Dimensions'
 import ReactMixin from 'react-mixin'
 import TimerMixin from 'react-timer-mixin'
 import Store from 'react-native-simple-store'
-import { MinoColors, DefaultVals, DefaultMinos, DefaultNextMinos } from '../Consts'
+import {
+  MinoColors, DefaultVals, DefaultMinos, DefaultNextMinos, MODE_BATTLE, MODE_SINGLE
+} from '../Consts'
 import { firebaseDb } from '../utils/firebase'
 
 export default class PlayField extends Component {
@@ -28,6 +30,64 @@ export default class PlayField extends Component {
 
   componentDidMount = () => {
     this._beginFall()
+
+    // mode: 'battle',
+    // battleKey: '',
+    // iAm: '',
+    // heIs: '',
+
+    if (this.props.screenProps.mode === MODE_BATTLE) {
+      this.hisValsRef = firebaseDb.ref('battles')
+        .child(this.props.screenProps.battleKey)
+        .child(this.props.screenProps.heIs).child('vals')
+      this.hisValsRef.remove()
+      this.hisValsRef.off()
+      this.hisValsRef.on('value',
+        snapshot => {
+          if (snapshot.exists()) {
+            this.setState({
+              hisVals: snapshot.val()
+            })
+          }
+        },
+        error => {
+        }
+      )
+
+      this.hisMinosRef = firebaseDb.ref('battles')
+        .child(this.props.screenProps.battleKey)
+        .child(this.props.screenProps.heIs).child('minos')
+      this.hisMinosRef.remove()
+      this.hisMinosRef.off()
+      this.hisMinosRef.on('value',
+        snapshot => {
+          if (snapshot.exists()) {
+            this.setState({
+              hisMinos: snapshot.val()
+            })
+          }
+        },
+        error => {
+        }
+      )
+
+      this.myPenalty = 0
+      this.myPenaltyCharged = 0
+      this.myPenaltyRef = firebaseDb.ref('battles')
+        .child(this.props.screenProps.battleKey)
+        .child(this.props.screenProps.iAm).child('penalty')
+      this.myPenaltyRef.remove()
+      this.myPenaltyRef.off()
+      this.myPenaltyRef.on('value',
+        snapshot => {
+          if (snapshot.exists()) {
+            this.myPenalty = snapshot.val()
+          }
+        },
+        error => {
+        }
+      )
+    }
   }
 
   componentWillUnmount = () => {
@@ -47,6 +107,8 @@ export default class PlayField extends Component {
       minoType: firstMinoType,
       minos: DefaultMinos[firstMinoType],
       startedAt: new Date(),
+      hisVals: DefaultVals,
+      hisMinos: DefaultMinos[0],
     }
   }
 
@@ -144,6 +206,16 @@ export default class PlayField extends Component {
       }
     }
 
+    for (let i = 0; i < 10; i++) {
+      for (let j = breakRows.length-1; j >= 0; j--) {
+        newVals[i].splice(breakRows[j], 1)
+      }
+      for (let j = breakRows.length-1; j >= 0; j--) {
+        newVals[i].unshift(0)
+      }
+    }
+
+    // Level & Score
     const newLines = this.state.lines + breakRows.length
     const newLevel = (breakRows.length > 0 && (newLines % 5) < breakRows.length) ? this.state.level + 1 : this.state.level
 
@@ -157,14 +229,41 @@ export default class PlayField extends Component {
         break
     }
 
-    for (let i = 0; i < 10; i++) {
-      for (let j = breakRows.length-1; j >= 0; j--) {
-        newVals[i].splice(breakRows[j], 1)
+    // Penalty
+    if (this.props.screenProps.mode === MODE_BATTLE) {
+      const newPenalty = this.myPenalty - this.myPenaltyCharged
+      if (newPenalty > 0) {
+        for (let j = 0; j < newPenalty; j++) {
+          const hole = Math.floor(Math.random() * 10)
+          for (let i = 0; i < 10; i++) {
+            if (i === hole) {
+              newVals[i].push(0)
+            } else {
+              newVals[i].push(8)
+            }
+            newVals[i].shift()
+          }
+        }
+        this.myPenaltyCharged += newPenalty
       }
-      for (let j = breakRows.length-1; j >= 0; j--) {
-        newVals[i].unshift(0)
+
+      if (breakRows.length > 1) {
+        const hisNewPenalty = (breakRows.length === 4) ? 4 : (breakRows.length - 1)
+
+        const hisPenaltyRef = firebaseDb.ref('battles')
+          .child(this.props.screenProps.battleKey)
+          .child(this.props.screenProps.heIs).child('penalty')
+        hisPenaltyRef.once('value')
+        .then(snapshot => {
+          const curHisPenalty = snapshot.exists() ? snapshot.val() : 0
+          hisPenaltyRef.set(curHisPenalty + hisNewPenalty)
+        })
       }
     }
+
+    this.setState({
+      vals: newVals,
+    })
 
     // Check alive
     let deadBlocks = 0
@@ -183,11 +282,17 @@ export default class PlayField extends Component {
       lines: newLines,
       score: newScore,
       level: newLevel,
-      vals: newVals,
       nextMinoType: nextNextMinoType,
       minoType: nextMinoType,
       minos: DefaultMinos[nextMinoType]
     })
+
+    if (this.props.screenProps.mode === MODE_BATTLE) {
+      const myValsRef = firebaseDb.ref('battles')
+        .child(this.props.screenProps.battleKey)
+        .child(this.props.screenProps.iAm).child('vals')
+      myValsRef.set(newVals)
+    }
 
     if (deadBlocks === 0) {
       this._beginFall()
@@ -235,6 +340,13 @@ export default class PlayField extends Component {
       (vals[newMinos[0][2]] && vals[newMinos[0][2]][newMinos[1][2]] === 0) &&
       (vals[newMinos[0][3]] && vals[newMinos[0][3]][newMinos[1][3]] === 0)
     if (canMove) this.setState({ minos: newMinos })
+
+    if (this.props.screenProps.mode === MODE_BATTLE) {
+      const myValsRef = firebaseDb.ref('battles')
+        .child(this.props.screenProps.battleKey)
+        .child(this.props.screenProps.iAm).child('minos')
+      myValsRef.set(newMinos)
+    }
 
     return canMove
   }
@@ -331,8 +443,8 @@ export default class PlayField extends Component {
       <View style={ styles.container }>
         <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
           <View>
-            <PlayCells vals={ this.state.vals } />
-            <Tetromino minos={ this.state.minos } minoType={ this.state.minoType }/>
+            <PlayCells vals={ this.state.vals } cellSize={ 20 } />
+            <Tetromino minos={ this.state.minos } minoType={ this.state.minoType } cellSize={ 20 }/>
           </View>
           <View style={{ width: sideWidth }}>
             <View style={{ borderWidth: 0.5, marginBottom: 10, padding: 2 }}>
@@ -346,6 +458,14 @@ export default class PlayField extends Component {
             <View style={{ borderWidth: 0.5, marginBottom: 10, padding: 2 }}>
               <Text>Level:</Text>
               <Text style={{ textAlign: 'center', fontSize: 20 }}>{ this.state.level }</Text>
+            </View>
+            <View>
+              { this.props.screenProps.mode === MODE_BATTLE &&
+                <View>
+                  <PlayCells vals={ this.state.hisVals } cellSize={ sideWidth / 10 } />
+                  <Tetromino minos={ this.state.hisMinos } minoType={ this.state.minoType } cellSize={ sideWidth / 10 }/>
+                </View>
+              }
             </View>
           </View>
         </View>
@@ -390,11 +510,16 @@ export default class PlayField extends Component {
 class PlayCells extends PureComponent {
   render() {
     let cols = []
+    const cellSize = this.props.cellSize
     this.props.vals.forEach((cv,ci,ca) => {
       let cells = []
       for (let ri = 5; ri < cv.length; ri++) {
         const color = MinoColors[cv[ri]]
-        const cellStyle = StyleSheet.flatten([styles.cell, { backgroundColor: color }])
+        const cellStyle = StyleSheet.flatten([
+          styles.cell,
+          { backgroundColor: color },
+          { width: cellSize, height: cellSize }
+        ])
         cells.push(<View key={ ci + '-' + ri } style={ cellStyle } />)
       }
       cols.push(
@@ -416,16 +541,17 @@ class Tetromino extends PureComponent {
   render() {
     const xs = this.props.minos[0]
     const ys = this.props.minos[1]
+    const cs = this.props.cellSize
     const colorStyle = { backgroundColor: MinoColors[this.props.minoType] }
 
     const mino1Styles = ys[0] < 5 ?
-      [{ display: 'none' }] : [styles.mino, colorStyle, { left: xs[0]*20, top: (ys[0]-5)*20 }]
+      [{ display: 'none' }] : [styles.mino, colorStyle, { height: cs, width: cs }, { left: xs[0]*cs, top: (ys[0]-5)*cs }]
     const mino2Styles = ys[1] < 5 ?
-      [{ display: 'none' }] : [styles.mino, colorStyle, { left: xs[1]*20, top: (ys[1]-5)*20 }]
+      [{ display: 'none' }] : [styles.mino, colorStyle, { height: cs, width: cs }, { left: xs[1]*cs, top: (ys[1]-5)*cs }]
     const mino3Styles = ys[2] < 5 ?
-      [{ display: 'none' }] : [styles.mino, colorStyle, { left: xs[2]*20, top: (ys[2]-5)*20 }]
+      [{ display: 'none' }] : [styles.mino, colorStyle, { height: cs, width: cs }, { left: xs[2]*cs, top: (ys[2]-5)*cs }]
     const mino4Styles = ys[3] < 5 ?
-      [{ display: 'none' }] : [styles.mino, colorStyle, { left: xs[3]*20, top: (ys[3]-5)*20 }]
+      [{ display: 'none' }] : [styles.mino, colorStyle, { height: cs, width: cs }, { left: xs[3]*cs, top: (ys[3]-5)*cs }]
 
     return (
       <View style={{ position: 'absolute' }}>
@@ -445,10 +571,10 @@ class NextTetromino extends PureComponent {
     const xs = minos[0]
     const ys = minos[1]
 
-    const mino1Styles = [styles.mino, colorStyle, { left: xs[0]*20, top: ys[0]*20 }]
-    const mino2Styles = [styles.mino, colorStyle, { left: xs[1]*20, top: ys[1]*20 }]
-    const mino3Styles = [styles.mino, colorStyle, { left: xs[2]*20, top: ys[2]*20 }]
-    const mino4Styles = [styles.mino, colorStyle, { left: xs[3]*20, top: ys[3]*20 }]
+    const mino1Styles = [styles.mino, colorStyle, { height: 20, width: 20 }, { left: xs[0]*20, top: ys[0]*20 }]
+    const mino2Styles = [styles.mino, colorStyle, { height: 20, width: 20 }, { left: xs[1]*20, top: ys[1]*20 }]
+    const mino3Styles = [styles.mino, colorStyle, { height: 20, width: 20 }, { left: xs[2]*20, top: ys[2]*20 }]
+    const mino4Styles = [styles.mino, colorStyle, { height: 20, width: 20 }, { left: xs[3]*20, top: ys[3]*20 }]
 
     return (
       <Text style={{ textAlign: 'center', marginTop: 10 }}>
@@ -476,14 +602,10 @@ const styles = StyleSheet.create({
   col: {
   },
   cell: {
-    width: 20,
-    height: 20,
     borderWidth: 0.5,
     borderColor: 'lightgray',
   },
   mino: {
-    width: 20,
-    height: 20,
     borderWidth: 0.5,
     borderColor: 'lightgray',
     position: 'absolute',

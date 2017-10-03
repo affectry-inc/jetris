@@ -7,6 +7,7 @@ export const MinoColors = {
   5: 'orange',
   6: 'yellow',
   7: 'purple',
+  8: 'gray',
 }
 
 export const DefaultVals =[
@@ -49,3 +50,6 @@ export const BattleStatus = {
   5: '5_inBattle',
   9: '9_finished',
 }
+
+export const MODE_BATTLE = 'battle'
+export const MODE_SINGLE = 'single'

@@ -10,6 +10,7 @@ import {
 } from 'react-native'
 import { Icon } from 'react-native-elements'
 import { StackNavigator } from 'react-navigation'
+import { MODE_BATTLE } from '../Consts'
 import PlayField from './PlayField'
 import SinglesScoreList from './SinglesScoreList'
 
@@ -60,7 +61,9 @@ export default class SinglesScreen extends Component {
           transparent={ false }
           visible={ this.state.isModalOpen }
         >
-          <PlayFieldModal />
+          <PlayFieldModal
+            screenProps={{ mode: MODE_BATTLE, battleKey: '-KvWQKqQkz_LasnGBfd0', iAm: 'player1', heIs: 'player1' }}
+          />
         </Modal>
         <Icon
           raised
