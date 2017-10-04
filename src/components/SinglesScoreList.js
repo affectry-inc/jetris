@@ -18,7 +18,6 @@ export default class SinglesScoreList extends Component {
     this.state = {
       loading: false,
       data: [],
-      refreshing: false
     }
   }
 
@@ -33,6 +32,12 @@ export default class SinglesScoreList extends Component {
     ref.off()
     ref.on('value',
       snapshot => {
+        if (snapshot.numChildren() === 0) {
+          this.setState({
+            loading: false,
+          })
+        }
+
         let scores = []
         snapshot.forEach(childSnapshot => {
           const val = childSnapshot.val()
@@ -44,7 +49,6 @@ export default class SinglesScoreList extends Component {
           this.setState({
             data: scores,
             loading: false,
-            refreshing: false
           })
         })
       },
@@ -52,7 +56,6 @@ export default class SinglesScoreList extends Component {
         this.setState({
           data: [],
           loading: false,
-          refreshing: false
         })
       }
     )
@@ -61,7 +64,7 @@ export default class SinglesScoreList extends Component {
   _onRefresh = () => {
     this.setState(
       {
-        refreshing: true
+        loading: true
       },
       () => {
         this._loadScores()
@@ -100,20 +103,6 @@ export default class SinglesScoreList extends Component {
     )
   }
 
-  _renderFooter = () => {
-    if (!this.state.loading) return null
-
-    return (
-      <View
-        style={{
-          paddingVertical: 20,
-        }}
-      >
-        <ActivityIndicator />
-      </View>
-    )
-  }
-
   render() {
     return (
       <View>
@@ -124,9 +113,8 @@ export default class SinglesScoreList extends Component {
             renderItem={ this._renderItem }
             keyExtractor={ item => item.key }
             ItemSeparatorComponent={ this._renderSeparator }
-            ListFooterComponent={ this._renderFooter }
             onRefresh={ this._onRefresh }
-            refreshing={ this.state.refreshing }
+            refreshing={ this.state.loading }
           />
         </List>
       </View>

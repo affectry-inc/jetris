@@ -5,7 +5,6 @@ import {
   View,
   StyleSheet,
   FlatList,
-  ActivityIndicator,
   AlertIOS,
 } from 'react-native'
 import { List, ListItem } from 'react-native-elements'
@@ -21,7 +20,6 @@ export default class BattlesList extends Component {
     this.state = {
       data: [],
       loading: false,
-      refreshing: false
     }
   }
 
@@ -32,10 +30,18 @@ export default class BattlesList extends Component {
   _loadBattles = () => {
     this.setState({ loading: true })
 
-    const ref = firebaseDb.ref('waitings').orderByChild('status').limitToFirst(50)
+    const now = new Date()
+    const minDate = now.setMinutes(now.getMinutes() - 3)
+    const ref = firebaseDb.ref('waitings').orderByChild('sentAt').startAt(minDate)
     ref.off()
     ref.on('value',
       snapshot => {
+        if (snapshot.numChildren() === 0) {
+          this.setState({
+            loading: false,
+          })
+        }
+
         let list = []
         snapshot.forEach(childSnapshot => {
           const val = childSnapshot.val()
@@ -47,7 +53,6 @@ export default class BattlesList extends Component {
           this.setState({
             data: list,
             loading: false,
-            refreshing: false
           })
         })
       },
@@ -55,7 +60,6 @@ export default class BattlesList extends Component {
         this.setState({
           data: [],
           loading: false,
-          refreshing: false
         })
       }
     )
@@ -82,7 +86,7 @@ export default class BattlesList extends Component {
   _onRefresh = () => {
     this.setState(
       {
-        refreshing: true
+        loading: true
       },
       () => {
         this._loadBattles()
@@ -138,20 +142,6 @@ export default class BattlesList extends Component {
     )
   }
 
-  _renderFooter = () => {
-    if (!this.state.loading) return null
-
-    return (
-      <View
-        style={{
-          paddingVertical: 20,
-        }}
-      >
-        <ActivityIndicator />
-      </View>
-    )
-  }
-
   render() {
     return (
       <View>
@@ -162,9 +152,8 @@ export default class BattlesList extends Component {
             renderItem={ this._renderItem }
             keyExtractor={ item => item.key }
             ItemSeparatorComponent={ this._renderSeparator }
-            ListFooterComponent={ this._renderFooter }
             onRefresh={ this._onRefresh }
-            refreshing={ this.state.refreshing }
+            refreshing={ this.state.loading }
           />
         </List>
       </View>
