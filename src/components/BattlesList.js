@@ -84,14 +84,7 @@ export default class BattlesList extends Component {
   }
 
   _onRefresh = () => {
-    this.setState(
-      {
-        loading: true
-      },
-      () => {
-        this._loadBattles()
-      }
-    )
+    this._loadBattles()
   }
 
   _onSelectCell = (key) => {

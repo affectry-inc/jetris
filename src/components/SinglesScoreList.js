@@ -61,14 +61,7 @@ export default class SinglesScoreList extends Component {
   }
 
   _onRefresh = () => {
-    this.setState(
-      {
-        loading: true
-      },
-      () => {
-        this._loadScores()
-      }
-    )
+    this._loadScores()
   }
 
   _renderSeparator = () => {
