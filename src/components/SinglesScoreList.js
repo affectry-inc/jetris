@@ -5,7 +5,6 @@ import {
   View,
   StyleSheet,
   FlatList,
-  ActivityIndicator,
 } from 'react-native'
 import { List, ListItem } from 'react-native-elements'
 import { firebaseDb } from '../utils/firebase'
