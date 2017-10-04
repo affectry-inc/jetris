@@ -15,6 +15,7 @@ import TimerMixin from 'react-timer-mixin'
 import { Icon } from 'react-native-elements'
 import { StackNavigator } from 'react-navigation'
 import Store from 'react-native-simple-store'
+import { MODE_BATTLE } from '../Consts'
 import WaitingChallenge from './WaitingChallenge'
 import PlayField from './PlayField'
 import BattlesList from './BattlesList'
@@ -30,6 +31,8 @@ export default class BattlesScreen extends Component {
       isPlayModalOpen: false,
       isWaitingModalOpen: false,
       battleKey: '',
+      iAm: '',
+      heIs: '',
       waitingMessage: '',
     }
   }
@@ -94,6 +97,8 @@ export default class BattlesScreen extends Component {
     this.setState({
       isWaitingModalOpen: true,
       battleKey: newRef.key,
+      iAm: 'player1',
+      heIs: 'player2',
       waitingMessage: 'Finding matches...',
     })
 
@@ -168,6 +173,8 @@ export default class BattlesScreen extends Component {
       this.setState({
         isWaitingModalOpen: true,
         battleKey: key,
+        iAm: 'player2',
+        heIs: 'player1',
         waitingMessage: 'Your challenge sent! Wait a minute...',
       })
 
@@ -210,6 +217,8 @@ export default class BattlesScreen extends Component {
     this.setState({
       isWaitingModalOpen: false,
       battleKey: '',
+      iAm: '',
+      heIs: '',
     })
   }
 
@@ -284,7 +293,9 @@ export default class BattlesScreen extends Component {
           transparent={ false }
           visible={ this.state.isPlayModalOpen }
         >
-          <PlayModal />
+          <PlayModal
+            screenProps={{ mode: MODE_BATTLE, battleKey: this.state.battleKey, iAm: this.state.iAm, heIs: this.state.heIs }}
+          />
         </Modal>
         <Modal
           animationType='none'

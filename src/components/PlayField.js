@@ -23,18 +23,11 @@ export default class PlayField extends Component {
   constructor(props) {
     super(props)
 
-    const firstMinoType = Math.floor(Math.random() * 7) + 1
-
     this.state = this._initState()
   }
 
   componentDidMount = () => {
     this._beginFall()
-
-    // mode: 'battle',
-    // battleKey: '',
-    // iAm: '',
-    // heIs: '',
 
     if (this.props.screenProps.mode === MODE_BATTLE) {
       this.hisValsRef = firebaseDb.ref('battles')
@@ -47,6 +40,22 @@ export default class PlayField extends Component {
           if (snapshot.exists()) {
             this.setState({
               hisVals: snapshot.val()
+            })
+          }
+        },
+        error => {
+        }
+      )
+
+      this.hisMinoTypeRef = firebaseDb.ref('battles')
+        .child(this.props.screenProps.battleKey)
+        .child(this.props.screenProps.heIs).child('minoType')
+      this.hisMinoTypeRef.off()
+      this.hisMinoTypeRef.on('value',
+        snapshot => {
+          if (snapshot.exists()) {
+            this.setState({
+              hisMinoType: snapshot.val()
             })
           }
         },
@@ -87,6 +96,11 @@ export default class PlayField extends Component {
         error => {
         }
       )
+
+      firebaseDb.ref('battles')
+        .child(this.props.screenProps.battleKey)
+        .child(this.props.screenProps.iAm).child('minoType')
+        .set(this.state.minoType)
     }
   }
 
@@ -109,6 +123,7 @@ export default class PlayField extends Component {
       startedAt: new Date(),
       hisVals: DefaultVals,
       hisMinos: DefaultMinos[0],
+      hisMinoType: 0,
     }
   }
 
@@ -292,6 +307,10 @@ export default class PlayField extends Component {
         .child(this.props.screenProps.battleKey)
         .child(this.props.screenProps.iAm).child('vals')
       myValsRef.set(newVals)
+      const myMinoTypeRef = firebaseDb.ref('battles')
+        .child(this.props.screenProps.battleKey)
+        .child(this.props.screenProps.iAm).child('minoType')
+      myMinoTypeRef.set(nextMinoType)
     }
 
     if (deadBlocks === 0) {
@@ -342,10 +361,10 @@ export default class PlayField extends Component {
     if (canMove) this.setState({ minos: newMinos })
 
     if (this.props.screenProps.mode === MODE_BATTLE) {
-      const myValsRef = firebaseDb.ref('battles')
+      const myMinosRef = firebaseDb.ref('battles')
         .child(this.props.screenProps.battleKey)
         .child(this.props.screenProps.iAm).child('minos')
-      myValsRef.set(newMinos)
+      myMinosRef.set(newMinos)
     }
 
     return canMove
@@ -463,7 +482,7 @@ export default class PlayField extends Component {
               { this.props.screenProps.mode === MODE_BATTLE &&
                 <View>
                   <PlayCells vals={ this.state.hisVals } cellSize={ sideWidth / 10 } />
-                  <Tetromino minos={ this.state.hisMinos } minoType={ this.state.minoType } cellSize={ sideWidth / 10 }/>
+                  <Tetromino minos={ this.state.hisMinos } minoType={ this.state.hisMinoType } cellSize={ sideWidth / 10 }/>
                 </View>
               }
             </View>
@@ -509,6 +528,7 @@ export default class PlayField extends Component {
 
 class PlayCells extends PureComponent {
   render() {
+    console.log('AAA')
     let cols = []
     const cellSize = this.props.cellSize
     this.props.vals.forEach((cv,ci,ca) => {
